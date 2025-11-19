@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.task.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.task.entity.User">
+        <id property="userId" column="user_id" />
+        <result property="username" column="username" />
+        <result property="password" column="password" />
+    </resultMap>
+
+    <select id="findByUsername" resultMap="UserResultMap">
+        SELECT * FROM t_user WHERE username = #{username}
+    </select>
+
+    <insert id="insertUser" parameterType="com.task.entity.User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO t_user (username, password)
+        VALUES (#{username}, #{password})
+    </insert>
+
+</mapper>
