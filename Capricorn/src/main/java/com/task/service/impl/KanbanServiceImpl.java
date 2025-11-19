@@ -9,33 +9,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-// 1. 这里的 abstract 去掉了，因为下面我们把所有活都干完了
 @Service
 public class KanbanServiceImpl implements KanbanService {
 
     @Autowired
     private KanbanMapper kanbanMapper;
 
-    // ==========================================
-    // 1. 必须实现的方法：getProjectFullData
-    // ==========================================
     @Override
     public Project getProjectFullData(Integer projectId) {
-        // 【关键修正】不调 getProjectCanvas，而是手动组装
-        // 因为你的 Mapper 里只有 findListsByProjectId
         Project project = new Project();
         project.setProjectId(projectId);
 
-        // 调用原版 Mapper 方法查出列表和卡片
         List<KanbanList> lists = kanbanMapper.findListsByProjectId(projectId);
         project.setLists(lists);
 
         return project;
     }
 
-    // ==========================================
-    // 2. 原有查询方法
-    // ==========================================
     @Override
     public List<Project> getUserProjects(Integer userId) {
         return kanbanMapper.findProjectsByUserId(userId);
@@ -46,9 +36,6 @@ public class KanbanServiceImpl implements KanbanService {
         return kanbanMapper.findListsByProjectId(projectId);
     }
 
-    // ==========================================
-    // 3. 卡片操作
-    // ==========================================
     @Override
     public void addCard(Card card) {
         kanbanMapper.addCard(card);
@@ -59,22 +46,16 @@ public class KanbanServiceImpl implements KanbanService {
         return kanbanMapper.updateCardList(cardId, newListId) > 0;
     }
 
-    // 【必须实现的方法】删除卡片
     @Override
     public boolean deleteCard(Integer cardId) {
-        // 假设 Mapper.deleteCard 没有返回值(void)或者返回 int
-        // 这里简单调用即可，如果你的 XML 没写返回值，就不用 return > 0
         try {
-            kanbanMapper.deleteCard(cardId); // 如果 Mapper 返回 void，这样写
+            kanbanMapper.deleteCard(cardId);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    // ==========================================
-    // 4. 列表操作 (这是你之前加的新功能)
-    // ==========================================
     @Override
     public void addList(KanbanList list) {
         kanbanMapper.addList(list);
@@ -82,8 +63,6 @@ public class KanbanServiceImpl implements KanbanService {
 
     @Override
     public void renameList(Integer listId, String newName) {
-        // 对应 Mapper 里的 updateListName
-        // 如果 Mapper 没这个方法，可以在 Mapper 补一个，或者这里暂时留空不报错
         kanbanMapper.updateListName(listId, newName);
     }
 
@@ -103,9 +82,6 @@ public class KanbanServiceImpl implements KanbanService {
         kanbanMapper.deleteList(listId);
     }
 
-    // ==========================================
-    // 5. 项目操作
-    // ==========================================
     @Override
     public void addProject(Project project) {
         kanbanMapper.addProject(project);
@@ -129,7 +105,6 @@ public class KanbanServiceImpl implements KanbanService {
         kanbanMapper.deleteProject(projectId);
     }
 
-    // --- 辅助方法 ---
     private void createListInternal(Integer projectId, String name, int order) {
         KanbanList list = new KanbanList();
         list.setProjectId(projectId);

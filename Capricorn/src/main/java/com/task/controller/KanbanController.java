@@ -19,15 +19,14 @@ import java.util.Map;
 public class KanbanController {
     @GetMapping("/")
     public String index() {
-        // 访问根路径 http://localhost:8081/kanban/ 时
-        // Spring 会去 /WEB-INF/views/ 找 index.jsp
+        // 访问根路径 http://localhost:8081/kanban/ 转到index
         return "index";
     }
 
     @Autowired
     private KanbanService kanbanService;
 
-    // 1. 显示项目列表页
+    //显示项目列表页
     @GetMapping("/main")
     public String showProjectList(HttpSession session, Model model) {
         User user = (User) session.getAttribute("currentUser");
@@ -39,17 +38,12 @@ public class KanbanController {
         return "main";
     }
 
-    // 2. 显示看板详情页
+    //显示看板详情页
     @GetMapping("/board")
     public String showBoard(@RequestParam Integer projectId,
                             @RequestParam String projectName,
                             Model model, HttpSession session) {
         if (session.getAttribute("currentUser") == null) return "redirect:/login";
-
-        // 查出这个项目下的所有列表和卡片
-        // 注意：为了配合 board.jsp 的逻辑，这里最好是用 Project 里的 lists
-        // 如果你的 Service 实现里 getProjectFullData 是手动组装的，用 getProjectFullData 更好
-        // 这里沿用你代码里的 getBoardData
         List<KanbanList> kanbanLists = kanbanService.getBoardData(projectId);
 
         model.addAttribute("kanbanLists", kanbanLists);
@@ -59,7 +53,7 @@ public class KanbanController {
         return "board";
     }
 
-    // 新增：处理卡片移动的 AJAX 请求
+    // 处理卡片移动的 AJAX 请求
     @PostMapping("/moveCard")
     @ResponseBody
     public String moveCard(@RequestParam Integer cardId,
@@ -86,7 +80,7 @@ public class KanbanController {
         return result;
     }
 
-    // 1. 添加项目
+    //添加项目
     @PostMapping("/addProject")
     @ResponseBody
     public Map<String, Object> addProject(String projectName, HttpSession session) {
@@ -107,7 +101,7 @@ public class KanbanController {
         return result;
     }
 
-    // 2. 重命名项目
+    // 重命名项目
     @PostMapping("/renameProject")
     @ResponseBody
     public String renameProject(Integer projectId, String projectName) {
@@ -123,7 +117,7 @@ public class KanbanController {
         return "success";
     }
 
-    // 1. 添加列表
+    // 添加列表
     @RequestMapping(value = "/board/addList", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> addList(Integer projectId, String listName) {
@@ -141,7 +135,7 @@ public class KanbanController {
         return result;
     }
 
-    // 2. 删除列表
+    // 删除列表
     @RequestMapping(value = "/board/deleteList", method = RequestMethod.POST)
     @ResponseBody
     public String deleteList(Integer listId) {
@@ -154,11 +148,7 @@ public class KanbanController {
         }
     }
 
-    // =======================================================
-    // 【下面是刚才缺失的方法，必须加上才能解决 404】
-    // =======================================================
-
-    // 3. 删除卡片 (解决拖拽到垃圾桶 404 的问题)
+    // 删除卡片
     @RequestMapping(value = "/board/deleteCard", method = RequestMethod.POST)
     @ResponseBody
     public String deleteCard(@RequestParam Integer cardId) {
@@ -171,7 +161,7 @@ public class KanbanController {
         }
     }
 
-    // 4. 重命名列表 (点击列表标题修改)
+    // 重命名列表
     @PostMapping("/board/renameList")
     @ResponseBody
     public String renameList(Integer listId, String listName) {
