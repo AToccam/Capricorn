@@ -12,5 +12,6 @@ public interface KanbanMapper {
     // 2. 核心：查找某个项目下的所有列表（并包含列表里的卡片）
     List<KanbanList> findListsByProjectId(Integer projectId);
 
-    // 3. 移动卡片时需要的操作（暂时留空，后面做拖拽再加）
+    // 3. 移动卡片时需要的操作
+    int updateCardList(@Param("cardId") Integer cardId, @Param("listId") Integer listId);
 }

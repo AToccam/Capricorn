@@ -84,17 +84,23 @@
 
       // 当拖拽停止（松手）时触发
       stop: function(event, ui) {
-        var item = ui.item; // 被拖动的卡片元素
-        var cardId = item.data("card-id"); // 获取卡片ID
-
-        // 获取新所在的列表ID
-        // closest('.list-column') 往上找最近的父级列表
+        var item = ui.item;
+        var cardId = item.data("card-id");
         var newListId = item.closest(".list-column").data("list-id");
 
         console.log("卡片 " + cardId + " 移动到了列表 " + newListId);
 
-        // TODO: 这里还没写 AJAX，所以刷新页面后会还原
-        // 下一步我们会在这里写代码，把变动发给服务器
+        // 🌟 新增：发送 AJAX 请求给服务器
+        $.post("${pageContext.request.contextPath}/moveCard", {
+          cardId: cardId,
+          newListId: newListId
+        }, function(response) {
+          if (response === "success") {
+            console.log("数据库保存成功！");
+          } else {
+            alert("保存失败，请刷新重试");
+          }
+        });
       }
     }).disableSelection();
   });

@@ -43,4 +43,11 @@
         ORDER BY l.order_index ASC, c.order_index ASC
     </select>
 
+    <update id="updateCardList">
+        UPDATE t_card
+        SET list_id = #{listId}
+        WHERE card_id = #{cardId}
+    </update>
+
+    
 </mapper>

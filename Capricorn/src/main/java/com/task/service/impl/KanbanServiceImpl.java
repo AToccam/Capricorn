@@ -24,4 +24,11 @@ public class KanbanServiceImpl implements KanbanService {
         // 这里调用了我们刚才写的那个最复杂的级联查询
         return kanbanMapper.findListsByProjectId(projectId);
     }
+
+    @Override
+    public boolean moveCard(Integer cardId, Integer newListId) {
+        // 调用 Mapper 更新数据库
+        int rows = kanbanMapper.updateCardList(cardId, newListId);
+        return rows > 0; // 如果影响行数大于0，说明更新成功
+    }
 }

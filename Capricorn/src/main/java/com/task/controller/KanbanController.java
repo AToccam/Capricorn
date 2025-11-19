@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
@@ -49,5 +51,18 @@ public class KanbanController {
         model.addAttribute("currentProjectId", projectId);
 
         return "board";
+    }
+
+    // 新增：处理卡片移动的 AJAX 请求
+    @PostMapping("/moveCard")
+    @ResponseBody // 关键！表示直接返回数据，而不是跳转页面
+    public String moveCard(@RequestParam Integer cardId,
+                           @RequestParam Integer newListId) {
+
+        System.out.println("收到拖拽请求：卡片 " + cardId + " -> 列表 " + newListId);
+
+        boolean success = kanbanService.moveCard(cardId, newListId);
+
+        return success ? "success" : "fail";
     }
 }
