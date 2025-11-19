@@ -17,6 +17,12 @@ import java.util.Map;
 
 @Controller
 public class KanbanController {
+    @GetMapping("/")
+    public String index() {
+        // 访问根路径 http://localhost:8081/kanban/ 时
+        // Spring 会去 /WEB-INF/views/ 找 index.jsp
+        return "index";
+    }
 
     @Autowired
     private KanbanService kanbanService;

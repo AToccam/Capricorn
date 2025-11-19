@@ -271,9 +271,9 @@
 <div class="skin-drawer" id="skin-drawer">
   <h3 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:10px;">背景设置</h3>
   <div class="bg-grid">
-    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg1.jpg');" data-img="${pageContext.request.contextPath}/images/bg1.jpg"></div>
-    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg2.jpg');" data-img="${pageContext.request.contextPath}/images/bg2.jpg"></div>
-    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg3.jpg');" data-img="${pageContext.request.contextPath}/images/bg3.jpg"></div>
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg1.png');" data-img="${pageContext.request.contextPath}/images/bg1.png"></div>
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg2.png');" data-img="${pageContext.request.contextPath}/images/bg2.png"></div>
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg3.png');" data-img="${pageContext.request.contextPath}/images/bg3.png"></div>
   </div>
 </div>
 
