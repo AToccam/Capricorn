@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.task.mapper.KanbanMapper">
+
+    <select id="findProjectsByUserId" resultType="com.task.entity.Project">
+        SELECT
+            project_id AS projectId,
+            project_name AS projectName,
+            owner_user_id AS ownerUserId
+        FROM t_project
+        WHERE owner_user_id = #{userId}
+    </select>
+
+    <resultMap id="ListMap" type="com.task.entity.KanbanList">
+        <id property="listId" column="list_id"/>
+        <result property="listName" column="list_name"/>
+        <result property="projectId" column="project_id"/>
+        <result property="orderIndex" column="list_order"/>
+
+        <collection property="cards" ofType="com.task.entity.Card">
+            <id property="cardId" column="card_id"/>
+            <result property="cardContent" column="card_content"/>
+            <result property="listId" column="card_list_id"/>
+            <result property="orderIndex" column="card_order"/>
+        </collection>
+    </resultMap>
+
+    <select id="findListsByProjectId" resultMap="ListMap">
+        SELECT
+            l.list_id,
+            l.list_name,
+            l.project_id,
+            l.order_index as list_order,
+            c.card_id,
+            c.card_content,
+            c.list_id as card_list_id,
+            c.order_index as card_order
+        FROM t_list l
+                 LEFT JOIN t_card c ON l.list_id = c.list_id
+        WHERE l.project_id = #{projectId}
+        ORDER BY l.order_index ASC, c.order_index ASC
+    </select>
+
+</mapper>

@@ -72,7 +72,7 @@ public class UserController {
     }
 
     // 5. 临时的“主页”入口 (为了测试登录成功)
-    @GetMapping("/main")
+    //@GetMapping("/main")
     public String showMainPage(HttpSession session) {
         // 检查用户是否登录
         if (session.getAttribute("currentUser") == null) {
