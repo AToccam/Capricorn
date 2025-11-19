@@ -1,8 +1,10 @@
 package com.task.mapper;
 
+import com.task.entity.Card;
 import com.task.entity.KanbanList;
 import com.task.entity.Project;
 import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface KanbanMapper {
@@ -14,4 +16,6 @@ public interface KanbanMapper {
 
     // 3. 移动卡片时需要的操作
     int updateCardList(@Param("cardId") Integer cardId, @Param("listId") Integer listId);
+
+    int addCard(Card card);
 }

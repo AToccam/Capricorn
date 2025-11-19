@@ -49,5 +49,13 @@
         WHERE card_id = #{cardId}
     </update>
 
-    
+    <insert id="addCard" parameterType="com.task.entity.Card" useGeneratedKeys="true" keyProperty="cardId">
+        INSERT INTO t_card (card_content, list_id, order_index)
+        VALUES (
+                   #{cardContent},
+                   #{listId},
+                   (SELECT IFNULL(MAX(order_index), 0) + 1 FROM t_card temp WHERE list_id = #{listId})
+               )
+    </insert>
+
 </mapper>

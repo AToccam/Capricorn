@@ -1,5 +1,6 @@
 package com.task.controller;
 
+import com.task.entity.Card;
 import com.task.entity.KanbanList;
 import com.task.entity.Project;
 import com.task.entity.User;
@@ -7,13 +8,12 @@ import com.task.service.KanbanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class KanbanController {
@@ -64,5 +64,27 @@ public class KanbanController {
         boolean success = kanbanService.moveCard(cardId, newListId);
 
         return success ? "success" : "fail";
+    }
+    @RequestMapping(value = "/board/addCard", method = RequestMethod.POST)
+    @ResponseBody // 重要：表示返回的是数据而不是页面跳转
+    public Map<String, Object> addCard(Integer listId, String cardContent) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            Card card = new Card();
+            card.setListId(listId);
+            card.setCardContent(cardContent);
+
+            // 调用 Service 保存 (假设 Service 调用的就是上面写的 Mapper)
+            kanbanService.addCard(card);
+
+            // 返回成功状态和新生成的ID
+            result.put("status", "success");
+            result.put("newCardId", card.getCardId());
+        } catch (Exception e) {
+            result.put("status", "error");
+        }
+
+        return result;
     }
 }
