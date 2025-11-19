@@ -57,5 +57,66 @@
                    (SELECT IFNULL(MAX(order_index), 0) + 1 FROM t_card temp WHERE list_id = #{listId})
                )
     </insert>
+    <insert id="addList" parameterType="com.task.entity.KanbanList" useGeneratedKeys="true" keyProperty="listId">
+        INSERT INTO t_list (list_name, project_id, order_index)
+        VALUES (
+                   #{listName},
+                   #{projectId},
+                   (SELECT tmp.new_order FROM (
+                                                  SELECT IFNULL(MAX(order_index), 0) + 1 AS new_order
+                                                  FROM t_list
+                                                  WHERE project_id = #{projectId}
+                                              ) AS tmp)
+               )
+    </insert>
+
+    <update id="updateListName">
+        UPDATE t_list SET list_name = #{listName} WHERE list_id = #{listId}
+    </update>
+
+    <delete id="deleteCardsByListId">
+        DELETE FROM t_card WHERE list_id = #{listId}
+    </delete>
+
+    <delete id="deleteList">
+        DELETE FROM t_list WHERE list_id = #{listId}
+    </delete>
+
+    <insert id="addProject" parameterType="com.task.entity.Project" useGeneratedKeys="true" keyProperty="projectId">
+        INSERT INTO t_project (project_name, owner_user_id)
+        VALUES (#{projectName}, #{ownerUserId})
+    </insert>
+
+    <update id="updateProjectName">
+        UPDATE t_project SET project_name = #{projectName} WHERE project_id = #{projectId}
+    </update>
+
+    <delete id="deleteCardsByProjectId">
+        DELETE t_card FROM t_card
+    INNER JOIN t_list ON t_card.list_id = t_list.list_id
+    WHERE t_list.project_id = #{projectId}
+    </delete>
+
+    <delete id="deleteListsByProjectId">
+        DELETE FROM t_list WHERE project_id = #{projectId}
+    </delete>
+
+    <delete id="deleteProject">
+        DELETE FROM t_project WHERE project_id = #{projectId}
+    </delete>
+
+    <update id="moveAllCards">
+        UPDATE t_card SET list_id = #{targetListId} WHERE list_id = #{sourceListId}
+    </update>
+
+    <select id="getProjectIdByListId" resultType="Integer">
+        SELECT project_id FROM t_list WHERE list_id = #{listId}
+    </select>
+
+    <select id="getListIdByName" resultType="Integer">
+        SELECT list_id FROM t_list
+        WHERE project_id = #{projectId} AND list_name = #{listName}
+            LIMIT 1
+    </select>
 
 </mapper>

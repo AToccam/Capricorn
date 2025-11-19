@@ -3,327 +3,422 @@
 <html>
 <head>
   <title>看板 - ${currentProjectName}</title>
-
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
   <style>
-    /* --- 全局基础样式 --- */
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0079bf; margin: 0; padding: 20px; overflow: hidden; /* 防止双滚动条 */ }
-    h2 { color: white; margin-top: 0; }
+    /* ========================================= */
+    /* 1. 全局布局                               */
+    /* ========================================= */
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background-color: #0079bf;
+      margin: 0;
+      padding: 20px;
+      background-size: cover;
+      background-position: center;
+      transition: background 0.5s;
+      display: flex;
+      flex-direction: column;
+      height: 100vh; /* 全屏高度 */
+      box-sizing: border-box;
+      overflow: hidden; /* 防止双滚动条 */
+    }
+
+    h2 { color: white; margin-top: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); flex-shrink: 0; }
     a { text-decoration: none; }
 
-    /* --- 看板容器 --- */
+    /* ========================================= */
+    /* 2. 上半部分：主看板容器 (横向滚动)          */
+    /* ========================================= */
     .board-container {
       display: flex;
       align-items: flex-start;
-      overflow-x: auto;
-      height: 90vh;
-      padding-bottom: 20px;
+      overflow-x: auto; /* 允许横向滚动 */
+      flex-grow: 1; /* 占据剩余空间 */
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      /* 滚动条样式优化 */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.5) transparent;
     }
 
-    /* --- 列表样式 --- */
+    /* ========================================= */
+    /* 3. 下半部分：未分类区域 (固定在底部)        */
+    /* ========================================= */
+    .uncategorized-zone {
+      height: 220px; /* 固定高度 */
+      flex-shrink: 0; /* 禁止被压缩 */
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(5px);
+      border-radius: 8px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      border: 2px dashed rgba(255, 255, 255, 0.6);
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .uncategorized-header {
+      color: white;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 15px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    /* 未分类里的卡片容器：横向排列 */
+    .uncategorized-list-body {
+      display: flex;
+      flex-wrap: wrap; /* 允许换行 */
+      gap: 10px;
+      overflow-y: auto; /* 内容多了可以竖向滚动 */
+      height: 100%;
+      align-content: flex-start;
+    }
+
+    /* 【修复1】强制未分类里的卡片大小与上面一致 */
+    .uncategorized-list-body .card {
+      width: 260px !important;  /* 强制宽度：跟上面列表卡片保持一致 */
+      flex: 0 0 auto;           /* 禁止伸缩 */
+      margin: 0 !important;     /* 由 gap 控制间距 */
+      height: fit-content;
+    }
+
+    /* ========================================= */
+    /* 4. 列表 & 卡片通用样式                    */
+    /* ========================================= */
     .list-column {
       background-color: #ebecf0;
       width: 280px;
       min-width: 280px;
       margin-right: 15px;
-      border-radius: 5px;
+      border-radius: 8px;
       padding: 10px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       max-height: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s; /* 动画准备 */
     }
 
     .list-header {
       font-weight: bold;
-      margin-bottom: 10px;
-      padding: 5px;
-      cursor: default;
       color: #172b4d;
+      padding: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* --- 卡片容器 (可拖拽区域) --- */
+    .list-del-btn { opacity: 0; cursor: pointer; transition: 0.2s; padding: 5px; border-radius: 3px; }
+    .list-del-btn:hover { background: #dfe1e6; color: #c00; }
+    .list-column:hover .list-del-btn { opacity: 1; }
+
     .card-container {
       flex-grow: 1;
-      min-height: 10px; /* 保证空列表也能拖入 */
+      min-height: 50px; /* 保证空列表也能拖入 */
       overflow-y: auto;
-      padding-bottom: 5px;
-      padding-right: 5px; /* 滚动条间隙 */
+      padding-right: 5px;
     }
 
-    /* --- 卡片样式 --- */
     .card {
       background-color: white;
       padding: 10px;
       margin-bottom: 8px;
-      border-radius: 3px;
-      box-shadow: 0 1px 0 rgba(9,30,66,.25);
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(9,30,66,.25);
       cursor: grab;
+      position: relative;
       word-wrap: break-word;
       color: #172b4d;
-      transition: transform 0.1s, background-color 0.2s;
     }
-    .card:active { cursor: grabbing; }
+    .delete-btn { position: absolute; top: 5px; right: 5px; display: none; cursor: pointer; color: #999; font-weight: bold; padding: 0 5px;}
+    .delete-btn:hover { color: #c00; background: #eee; border-radius: 3px; }
+    .card:hover .delete-btn { display: block; }
 
-    /* 拖拽时的占位符 (虚线框) */
+    /* ========================================= */
+    /* 5. 【核心】拖拽特效样式                   */
+    /* ========================================= */
+
+    /* (A) 虚线占位符 (预测落点) */
     .ui-sortable-placeholder {
-      border: 2px dashed #ccc;
+      border: 2px dashed #0079bf !important;
+      background-color: rgba(0, 121, 191, 0.05) !important;
       visibility: visible !important;
       height: 40px !important;
+      border-radius: 4px;
       margin-bottom: 8px;
-      background: rgba(0,0,0,0.05);
-      border-radius: 3px;
-    }
-
-    /* --- 底部添加按钮区域 --- */
-    .list-footer { margin-top: 5px; }
-
-    .add-card-btn {
-      color: #5e6c84;
-      padding: 8px;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .add-card-btn:hover { background-color: rgba(9, 30, 66, 0.08); color: #172b4d; }
-
-    .add-card-form { display: none; } /* 默认隐藏 */
-
-    .card-input {
-      width: 100%;
-      border: none;
-      border-radius: 3px;
-      padding: 8px;
-      box-shadow: 0 1px 0 rgba(9,30,66,.25);
-      margin-bottom: 5px;
-      resize: none;
-      display: block;
       box-sizing: border-box;
-      font-family: inherit;
     }
-    .btn-save { background-color: #0079bf; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-weight: bold; }
-    .btn-save:hover { background-color: #026aa7; }
+
+    /* (B) 拖拽中的卡片 (Helper) - 解决遮挡问题 */
+    .ui-sortable-helper {
+      z-index: 10000 !important; /* 保证最高层级 */
+      width: 260px !important;   /* 强制宽度 */
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
+      transform: rotate(3deg);   /* 倾斜效果 */
+      cursor: grabbing !important;
+    }
+
+    /* (C) 列表激活样式 (拖入时放大) */
+    .list-column.drag-active,
+    .uncategorized-zone.drag-active {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 2px #0079bf, 0 0 15px rgba(0, 121, 191, 0.5); /* 蓝色光圈 */
+      background-color: #e6e9ef;
+      z-index: 500; /* 浮起 */
+    }
+
+    /* ========================================= */
+    /* 6. 其他组件 (添加按钮、垃圾桶、皮肤)        */
+    /* ========================================= */
+    .add-list-wrapper { min-width: 280px; background: rgba(255,255,255,0.25); color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+    .add-list-wrapper:hover { background: rgba(255,255,255,0.4); }
+    .add-card-btn { color: #5e6c84; padding: 8px; cursor: pointer; border-radius: 3px; margin-top: 5px; }
+    .add-card-btn:hover { background: rgba(9,30,66,0.08); color: #172b4d; }
+
+    .list-footer { margin-top: 5px; }
+    .add-card-form, .add-list-form { display: none; margin-top: 5px; }
+    .card-input, .list-name-input { width: 100%; padding: 8px; border-radius: 3px; border: none; margin-bottom: 5px; box-sizing: border-box; box-shadow: inset 0 0 0 2px #0079bf; }
+    .btn-save { background: #0079bf; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-weight: 600; }
+    .btn-save:hover { background: #026aa7; }
     .btn-close { background: transparent; border: none; cursor: pointer; font-size: 20px; color: #6b778c; margin-left: 5px; vertical-align: middle; }
-    .btn-close:hover { color: #172b4d; }
 
-    /* --- 🗑️ 垃圾桶区域样式 --- */
-    .trash-zone {
-      position: fixed;
-      bottom: 40px;
-      right: 40px;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background-color: #ebecf0; /* 平时颜色 */
-      text-align: center;
-      line-height: 70px;
-      font-size: 35px;
-      z-index: 9999;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹性动画 */
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      user-select: none;
-      opacity: 0.8;
-    }
+    /* 垃圾桶 */
+    .trash-zone { position: fixed; bottom: 240px; right: 40px; width: 60px; height: 60px; border-radius: 50%; background: #ebecf0; text-align: center; line-height: 60px; font-size: 30px; z-index: 900; opacity: 0.8; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.2s; }
+    .trash-zone.ui-droppable-active { transform: scale(1.1); opacity: 1; background: #fff; }
+    .trash-zone.ui-droppable-hover { transform: scale(1.2); background: #ffe3e3; color: #c00; box-shadow: 0 0 20px #c00; }
+    .card-danger { background-color: #ffebec !important; border: 2px solid #c00 !important; transform: rotate(5deg) !important; }
 
-    /* 当有卡片被拖动时，垃圾桶稍微变大提示 */
-    .trash-zone.ui-droppable-active {
-      transform: scale(1.1);
-      background-color: #dfe1e6;
-      opacity: 1;
-    }
-
-    /* 当卡片拖到垃圾桶上方时：变红警告 */
-    .trash-zone.ui-droppable-hover {
-      transform: scale(1.2);
-      background-color: #ffe3e3;
-      box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-      color: #ff0000;
-    }
-
-    /* --- 即将删除的卡片样式 --- */
-    /* jQuery UI Helper 样式 */
-    .card-danger {
-      background-color: #ffebec !important;
-      border: 2px solid #ff0000 !important;
-      color: #c00 !important;
-      transform: rotate(5deg) !important; /* 歪一点 */
-      opacity: 0.9;
-    }
-
+    /* 皮肤按钮 */
+    .skin-toggle-btn { position: fixed; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; padding-bottom: 3px; box-sizing: border-box; font-size: 22px; cursor: pointer; z-index: 2000; color: white; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px); }
+    .skin-drawer { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background: #f4f5f7; z-index: 1999; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 70px 20px; box-sizing: border-box; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+    .skin-drawer.open { right: 0; }
+    .bg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .bg-item { width: 100%; height: 70px; border-radius: 6px; cursor: pointer; background-size: cover; border: 2px solid transparent; transition: transform 0.2s; }
+    .bg-item:hover { border-color: #0079bf; transform: scale(1.05); }
   </style>
 </head>
 <body>
 
-<h2>📊 ${currentProjectName} <a href="${pageContext.request.contextPath}/main" style="font-size:14px; color:#fff; opacity: 0.8;">(返回首页)</a></h2>
+<h2>📊 ${currentProjectName} <a href="${pageContext.request.contextPath}/main" style="font-size:14px; color:#fff; opacity: 0.9;">(返回首页)</a></h2>
 
 <div class="board-container">
   <c:forEach items="${kanbanLists}" var="list">
-    <div class="list-column" data-list-id="${list.listId}">
-      <div class="list-header">${list.listName}</div>
+    <c:if test="${list.listName != '未分类'}">
+      <div class="list-column" id="column-${list.listId}" data-list-id="${list.listId}">
+        <div class="list-header">
+          <div style="cursor: text;" onclick="editListTitle(this, ${list.listId})">${list.listName}</div>
+          <div class="list-del-btn" onclick="deleteList(${list.listId})" title="删除列表">🗑️</div>
+        </div>
 
-      <div class="card-container connectedSortable" id="container-${list.listId}">
-        <c:forEach items="${list.cards}" var="card">
-          <c:if test="${not empty card.cardId}">
+        <div class="card-container connectedSortable" id="container-${list.listId}">
+          <c:forEach items="${list.cards}" var="card">
             <div class="card" data-card-id="${card.cardId}">
                 ${card.cardContent}
+              <span class="delete-btn" onclick="deleteCard(event, ${card.cardId})">&times;</span>
             </div>
-          </c:if>
-        </c:forEach>
-      </div>
-
-      <div class="list-footer">
-        <div class="add-card-btn" id="btn-wrapper-${list.listId}" onclick="showInputBox(${list.listId})">
-          + 添加任务
+          </c:forEach>
         </div>
-        <div class="add-card-form" id="form-wrapper-${list.listId}">
-          <textarea class="card-input" id="input-${list.listId}" rows="3" placeholder="为此卡片输入标题..."></textarea>
-          <div style="display: flex; align-items: center;">
-            <button class="btn-save" onclick="submitCard(${list.listId})">添加卡片</button>
-            <button class="btn-close" onclick="hideInputBox(${list.listId})">&times;</button>
+
+        <div class="list-footer">
+          <div class="add-card-btn" id="btn-wrapper-${list.listId}" onclick="showInputBox(${list.listId})">+ 添加任务</div>
+          <div class="add-card-form" id="form-wrapper-${list.listId}">
+            <textarea class="card-input" id="input-${list.listId}" rows="3" placeholder="输入任务..."></textarea>
+            <div style="display: flex; align-items: center;">
+              <button class="btn-save" onclick="submitCard(${list.listId})">添加</button>
+              <button class="btn-close" onclick="hideInputBox(${list.listId})">&times;</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </c:if>
   </c:forEach>
+
+  <div class="add-list-wrapper" id="addListBtn" onclick="showAddListForm()">+ 添加新列表</div>
+  <div class="add-list-wrapper add-list-form" id="addListForm">
+    <input type="text" class="list-name-input" id="newListName" placeholder="列表名称..." />
+    <div style="display: flex; align-items: center;">
+      <button class="btn-save" onclick="submitNewList()">确定</button>
+      <button class="btn-close" onclick="hideAddListForm()">&times;</button>
+    </div>
+  </div>
 </div>
 
-<div id="trash-can" class="trash-zone" title="拖入此处删除">
-  🗑️
+<c:forEach items="${kanbanLists}" var="list">
+  <c:if test="${list.listName == '未分类'}">
+    <div class="uncategorized-zone" data-list-id="${list.listId}">
+      <div class="uncategorized-header">📂 未分类 / 归档池 (删除列表后的任务会来到这里)</div>
+
+      <div class="card-container connectedSortable uncategorized-list-body" id="container-${list.listId}">
+        <c:forEach items="${list.cards}" var="card">
+          <div class="card" data-card-id="${card.cardId}">
+              ${card.cardContent}
+            <span class="delete-btn" onclick="deleteCard(event, ${card.cardId})">&times;</span>
+          </div>
+        </c:forEach>
+      </div>
+    </div>
+  </c:if>
+</c:forEach>
+
+<div id="trash-can" class="trash-zone" title="拖入此处删除">🗑️</div>
+<div class="skin-toggle-btn" id="skin-btn" title="更换背景">👕</div>
+<div class="skin-drawer" id="skin-drawer">
+  <h3 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:10px;">背景设置</h3>
+  <div class="bg-grid">
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg1.jpg');" data-img="${pageContext.request.contextPath}/images/bg1.jpg"></div>
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg2.jpg');" data-img="${pageContext.request.contextPath}/images/bg2.jpg"></div>
+    <div class="bg-item" style="background-image: url('${pageContext.request.contextPath}/images/bg3.jpg');" data-img="${pageContext.request.contextPath}/images/bg3.jpg"></div>
+  </div>
 </div>
 
 <script>
+  var currentProjectId = ${currentProjectId};
   $(function() {
-    // =========================================
-    // 1. 拖拽排序 (Sortable)
-    // =========================================
+    // 1. 皮肤加载
+    var bgVal = localStorage.getItem("bg_value");
+    if(bgVal) $('body').css('background-image', 'url('+bgVal+')');
+
+    // 2. 初始化核心拖拽功能
+    initSortable();
+
+    // 3. 初始化垃圾桶
+    initTrash();
+
+    // 4. 皮肤切换事件
+    $("#skin-btn").click(function(e){ e.stopPropagation(); $("#skin-drawer").toggleClass("open"); });
+    $(document).click(function(){ $("#skin-drawer").removeClass("open"); });
+    $(".skin-drawer").click(function(e){ e.stopPropagation(); });
+    $(".bg-item").click(function(){ var u=$(this).data("img"); $('body').css('background-image','url('+u+')'); localStorage.setItem("bg_value",u); });
+  });
+
+  // ===========================================
+  // 【核心函数】初始化拖拽 (含新特效与修复)
+  // ===========================================
+  function initSortable() {
     $(".card-container").sortable({
-      connectWith: ".card-container",
-      placeholder: "ui-sortable-placeholder",
+      connectWith: ".card-container", // 允许上下区域互通
+      placeholder: "ui-sortable-placeholder", // 虚线框样式
       cursor: "grabbing",
-      revert: 200, // 开启回弹动画
+      revert: 200,
 
-      // 拖拽停止时的回调
+      // --- 修复遮挡问题的关键配置 ---
+      appendTo: "body",   // 挂载到 body，脱离容器限制
+      helper: "clone",    // 克隆模式
+      zIndex: 10000,      // 强制最高层级
+
+      // --- 1. 开始拖拽 ---
+      start: function(event, ui) {
+        ui.item.css("opacity", 0); // 隐藏原卡片
+        // 强制 Helper 宽度，防止从宽容器拖到窄容器时变形
+        ui.helper.css("width", "260px");
+      },
+
+      // --- 2. 进入列表感应特效 ---
+      over: function(event, ui) {
+        // 找到当前悬停的列表容器 (无论是普通列表还是未分类区)
+        $(this).closest(".list-column, .uncategorized-zone").addClass("drag-active");
+      },
+
+      // --- 3. 离开列表取消特效 ---
+      out: function(event, ui) {
+        $(this).closest(".list-column, .uncategorized-zone").removeClass("drag-active");
+      },
+
+      // --- 4. 停止拖拽 ---
       stop: function(event, ui) {
-        // 如果卡片已经被标记为“正在删除”，则不要执行移动逻辑
-        if (ui.item.data("deleting")) {
-          return;
-        }
+        ui.item.css("opacity", 1); // 恢复显示
+        // 移除所有特效，防止卡死
+        $(".list-column, .uncategorized-zone").removeClass("drag-active");
 
-        var item = ui.item;
-        var cardId = item.data("card-id");
-        var newListId = item.closest(".list-column").data("list-id");
+        if (ui.item.data("deleting")) return; // 如果是删除操作，不执行移动
 
-        console.log("更新位置: " + cardId + " -> " + newListId);
-        $.post("${pageContext.request.contextPath}/moveCard", {
-          cardId: cardId,
-          newListId: newListId
-        });
+        var cardId = ui.item.data("card-id");
+        // 获取目标列表ID
+        var newListId = ui.item.closest("[data-list-id]").data("list-id");
+
+        $.post("${pageContext.request.contextPath}/moveCard", { cardId: cardId, newListId: newListId });
       }
     }).disableSelection();
+  }
 
-    // =========================================
-    // 2. 拖拽删除 (Droppable) - 修复版
-    // =========================================
+  // 垃圾桶逻辑
+  function initTrash() {
     $("#trash-can").droppable({
-      accept: ".card",
-      tolerance: "touch",
-
-      // 移入：变红
-      over: function(event, ui) {
-        ui.helper.addClass("card-danger");
-        $(this).html("⚠️");
-      },
-
-      // 移出：恢复
-      out: function(event, ui) {
-        ui.helper.removeClass("card-danger");
-        $(this).html("🗑️");
-      },
-
-      // 松手：触发删除逻辑
-      drop: function(event, ui) {
+      accept: ".card", tolerance: "touch",
+      over: function(e, ui) { ui.helper.addClass("card-danger"); $(this).html("⚠️"); },
+      out: function(e, ui) { ui.helper.removeClass("card-danger"); $(this).html("🗑️"); },
+      drop: function(e, ui) {
         var cardId = ui.draggable.data("card-id");
-        var $cardElement = ui.draggable; //原本的卡片元素
+        var $card = ui.draggable;
 
-        // 【修复1】第一时间移除红色样式，防止它带着样式弹回去
-        ui.helper.removeClass("card-danger");
-        $cardElement.removeClass("card-danger");
-        $(this).html("🗑️");
+        ui.helper.removeClass("card-danger"); $card.removeClass("card-danger"); $(this).html("🗑️");
+        $card.data("deleting", true); // 标记为正在删除
 
-        // 标记为正在删除，防止 sortable 的 stop 事件干扰
-        $cardElement.data("deleting", true);
-
-        if (confirm("确定要永久删除这个任务吗？")) {
-          // 【修复2】视觉上直接移除 (Optimistic UI)
-          // 先隐藏，让用户觉得“已经删了”，然后再去后台删
-          $cardElement.hide();
-
-          // 发送请求给后端
-          $.post("${pageContext.request.contextPath}/board/deleteCard", {
-            cardId: cardId
-          }, function(response) {
-            if (response === "success") {
-              // 后端删除成功，彻底移除DOM
-              $cardElement.remove();
-              console.log("数据库删除成功");
-            } else {
-              // 后端删除失败（极其罕见），恢复显示
-              alert("删除失败，请刷新重试");
-              $cardElement.show();
-              $cardElement.data("deleting", false);
-              $(".card-container").sortable("cancel");
-            }
+        if(confirm("确定要永久粉碎这个任务吗？")) {
+          $card.hide(); // 视觉删除
+          $.post("${pageContext.request.contextPath}/board/deleteCard", {cardId:cardId}, function(r){
+            if(r==="success") $card.remove();
+            else { $card.show(); $card.data("deleting",false); initSortable(); }
           });
         } else {
-          // 用户点击取消：让卡片弹回去
-          $cardElement.data("deleting", false);
-          // 必须调用 cancel 让 sortable 把 DOM 放回原处
-          $(".card-container").sortable("cancel");
+          $card.data("deleting",false);
+          $(".card-container").sortable("cancel"); // 取消操作回弹
         }
       }
     });
-  });
-
-  // =========================================
-  // 3. 添加任务相关函数 (保持不变)
-  // =========================================
-  function showInputBox(listId) {
-    $("#btn-wrapper-" + listId).hide();
-    $("#form-wrapper-" + listId).show();
-    $("#input-" + listId).focus();
   }
 
-  function hideInputBox(listId) {
-    $("#form-wrapper-" + listId).hide();
-    $("#btn-wrapper-" + listId).show();
-    $("#input-" + listId).val("");
+  // 列表管理函数
+  function showAddListForm() { $("#addListBtn").hide(); $("#addListForm").show(); $("#newListName").focus(); }
+  function hideAddListForm() { $("#addListForm").hide(); $("#addListBtn").show(); $("#newListName").val(""); }
+
+  function submitNewList() {
+    var name = $("#newListName").val(); if(!name) return;
+    $.post("${pageContext.request.contextPath}/board/addList", { projectId: currentProjectId, listName: name }, function(res) {
+      if(res.status === "success") location.reload();
+    });
   }
 
-  function submitCard(listId) {
-    var content = $("#input-" + listId).val();
-    if (!content || content.trim() === "") return;
+  function deleteList(listId) {
+    if(confirm("确定删除此列表？\n所有任务将移动到底部的【未分类】区域。")) {
+      $.post("${pageContext.request.contextPath}/board/deleteList", { listId: listId }, function(res) {
+        if(res==="success") location.reload();
+        else alert("删除失败");
+      });
+    }
+  }
 
-    $.ajax({
-      url: "${pageContext.request.contextPath}/board/addCard",
-      type: "POST",
-      data: { listId: listId, cardContent: content },
-      success: function(response) {
-        if (response.status === "success") {
-          var newCardHtml = '<div class="card" data-card-id="' + response.newCardId + '">' +
-                  content + '</div>';
-          $("#container-" + listId).append(newCardHtml);
-          hideInputBox(listId);
-        } else {
-          alert("添加失败");
-        }
-      },
-      error: function() { alert("网络错误"); }
+  // 其他辅助函数
+  function editListTitle(el, id) {
+    var txt = $(el).text(); var $inp=$("<input class='list-name-input' style='margin:0;' value='"+txt+"'>");
+    $(el).hide().after($inp); $inp.focus().select().on("blur keydown", function(e){
+      if(e.type==="keydown" && e.keyCode!==13)return;
+      var val=$inp.val();
+      if(val && val!==txt) $.post("${pageContext.request.contextPath}/board/renameList", {listId:id, listName:val}, function(){ $(el).text(val).show(); $inp.remove(); });
+      else { $(el).show(); $inp.remove(); }
+    });
+  }
+
+  function showInputBox(id) { $("#btn-wrapper-"+id).hide(); $("#form-wrapper-"+id).show(); $("#input-"+id).focus(); }
+  function hideInputBox(id) { $("#form-wrapper-"+id).hide(); $("#btn-wrapper-"+id).show(); $("#input-"+id).val(""); }
+
+  function deleteCard(e, id) { e.stopPropagation(); if(confirm("删除任务？")) $.post("${pageContext.request.contextPath}/board/deleteCard", {cardId:id}, function(r){ if(r==="success") $("div[data-card-id='"+id+"']").remove(); }); }
+
+  function submitCard(id) {
+    var txt = $("#input-"+id).val(); if(!txt)return;
+    $.post("${pageContext.request.contextPath}/board/addCard", {listId:id, cardContent:txt}, function(r){
+      if(r.status==="success") {
+        $("#container-"+id).append('<div class="card" data-card-id="'+r.newCardId+'">'+txt+'<span class="delete-btn" onclick="deleteCard(event, '+r.newCardId+')">&times;</span></div>');
+        hideInputBox(id);
+      }
     });
   }
 </script>
-
 </body>
 </html>
