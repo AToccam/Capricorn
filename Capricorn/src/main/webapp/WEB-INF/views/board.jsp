@@ -312,6 +312,13 @@
         // 获取目标列表ID
         var newListId = ui.item.closest("[data-list-id]").data("list-id");
 
+        if (!newListId) {
+          console.warn("未检测到目标列表，取消请求");
+          // 可选：让卡片回弹归位，视觉上更自然
+          $(this).sortable("cancel");
+          return; // 直接结束，不发送请求，就不会报错了！
+        }
+
         $.post("${pageContext.request.contextPath}/moveCard", { cardId: cardId, newListId: newListId });
       }
     }).disableSelection();
@@ -349,9 +356,52 @@
   function hideAddListForm() { $("#addListForm").hide(); $("#addListBtn").show(); $("#newListName").val(""); }
 
   function submitNewList() {
-    var name = $("#newListName").val(); if(!name) return;
-    $.post("${pageContext.request.contextPath}/board/addList", { projectId: currentProjectId, listName: name }, function(res) {
-      if(res.status === "success") location.reload();
+    var name = $("#newListName").val();
+    if (!name || name.trim() === "") return;
+
+    // 发送请求
+    $.post("${pageContext.request.contextPath}/board/addList", {
+      projectId: currentProjectId,
+      listName: name
+    }, function(res) {
+      if (res.status === "success") {
+        var newListId = res.newListId; // 获取后端返回的新 ID
+
+        var newListHtml = `
+                    <div class="list-column" id="column-` + newListId + `" data-list-id="` + newListId + `">
+                        <div class="list-header">
+                            <div style="cursor: text;" onclick="editListTitle(this, ` + newListId + `)">` + name + `</div>
+                            <div class="list-del-btn" onclick="deleteList(` + newListId + `)" title="删除列表">🗑️</div>
+                        </div>
+
+                        <div class="card-container connectedSortable" id="container-` + newListId + `">
+                            </div>
+
+                        <div class="list-footer">
+                            <div class="add-card-btn" id="btn-wrapper-` + newListId + `" onclick="showInputBox(` + newListId + `)">+ 添加任务</div>
+                            <div class="add-card-form" id="form-wrapper-` + newListId + `">
+                                <textarea class="card-input" id="input-` + newListId + `" rows="3" placeholder="输入任务..."></textarea>
+                                <div style="display: flex; align-items: center;">
+                                    <button class="btn-save" onclick="submitCard(` + newListId + `)">添加</button>
+                                    <button class="btn-close" onclick="hideInputBox(` + newListId + `)">&times;</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+        // 插入到页面
+        $(newListHtml).insertBefore("#addListBtn").hide().fadeIn(300);
+
+        // 重置输入框
+        hideAddListForm();
+
+        // 重新初始化拖拽功能
+        initSortable();
+
+      } else {
+        alert("添加失败，请重试");
+      }
     });
   }
 

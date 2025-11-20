@@ -118,6 +118,7 @@ public class KanbanController {
     }
 
     // 添加列表
+// 修改这个方法
     @RequestMapping(value = "/board/addList", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> addList(Integer projectId, String listName) {
@@ -126,8 +127,13 @@ public class KanbanController {
             KanbanList list = new KanbanList();
             list.setProjectId(projectId);
             list.setListName(listName);
+
+            // 保存到数据库
             kanbanService.addList(list);
+
+            //返回成功状态 + 新生成的 ID
             result.put("status", "success");
+            result.put("newListId", list.getListId()); // <--- 关键：必须传回这个 ID
         } catch (Exception e) {
             e.printStackTrace();
             result.put("status", "error");
