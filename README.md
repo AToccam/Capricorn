@@ -74,7 +74,7 @@
       project_name VARCHAR(255) NOT NULL,
       owner_user_id INT NOT NULL,
       FOREIGN KEY (owner_user_id) REFERENCES t_user(user_id)
-  );```
+  );
   ```
 
   ```-- 3. 列表表
@@ -84,7 +84,7 @@
       project_id INT NOT NULL,
       order_index INT NOT NULL DEFAULT 0,
       FOREIGN KEY (project_id) REFERENCES t_project(project_id)
-  );```
+  );
   ```
 
   ```-- 4. 卡片表
@@ -94,7 +94,7 @@
       list_id INT NOT NULL,
       order_index INT NOT NULL DEFAULT 0,
       FOREIGN KEY (list_id) REFERENCES t_list(list_id)
-  ); ```
+  ); 
   ```
 
   
@@ -122,3 +122,4 @@
   特别致谢：Gemini 3 pro
   
   
+
