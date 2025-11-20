@@ -118,4 +118,7 @@
   ------
   
   **© 2025 Capricorn Project.** Created for Final Assignment.
-  *特别致谢：Gemini 3 pro
+  
+  特别致谢：Gemini 3 pro
+  
+  
