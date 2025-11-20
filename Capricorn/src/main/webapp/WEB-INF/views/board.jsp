@@ -8,9 +8,6 @@
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 
   <style>
-    /* ========================================= */
-    /* 1. 全局布局                               */
-    /* ========================================= */
     body {
       font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
       background-color: #0079bf;
@@ -29,9 +26,6 @@
     h2 { color: white; margin-top: 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); flex-shrink: 0; }
     a { text-decoration: none; }
 
-    /* ========================================= */
-    /* 2. 上半部分：主看板容器 (横向滚动)          */
-    /* ========================================= */
     .board-container {
       display: flex;
       align-items: flex-start;
@@ -44,9 +38,6 @@
       scrollbar-color: rgba(255,255,255,0.5) transparent;
     }
 
-    /* ========================================= */
-    /* 3. 下半部分：未分类区域 (固定在底部)        */
-    /* ========================================= */
     .uncategorized-zone {
       height: 220px; /* 固定高度 */
       flex-shrink: 0; /* 禁止被压缩 */
@@ -69,7 +60,6 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
 
-    /* 未分类里的卡片容器：横向排列 */
     .uncategorized-list-body {
       display: flex;
       flex-wrap: wrap; /* 允许换行 */
@@ -79,7 +69,6 @@
       align-content: flex-start;
     }
 
-    /* 【修复1】强制未分类里的卡片大小与上面一致 */
     .uncategorized-list-body .card {
       width: 260px !important;  /* 强制宽度：跟上面列表卡片保持一致 */
       flex: 0 0 auto;           /* 禁止伸缩 */
@@ -87,9 +76,6 @@
       height: fit-content;
     }
 
-    /* ========================================= */
-    /* 4. 列表 & 卡片通用样式                    */
-    /* ========================================= */
     .list-column {
       background-color: #ebecf0;
       width: 280px;
@@ -140,11 +126,6 @@
     .delete-btn:hover { color: #c00; background: #eee; border-radius: 3px; }
     .card:hover .delete-btn { display: block; }
 
-    /* ========================================= */
-    /* 5. 【核心】拖拽特效样式                   */
-    /* ========================================= */
-
-    /* (A) 虚线占位符 (预测落点) */
     .ui-sortable-placeholder {
       border: 2px dashed #0079bf !important;
       background-color: rgba(0, 121, 191, 0.05) !important;
@@ -155,7 +136,6 @@
       box-sizing: border-box;
     }
 
-    /* (B) 拖拽中的卡片 (Helper) - 解决遮挡问题 */
     .ui-sortable-helper {
       z-index: 10000 !important; /* 保证最高层级 */
       width: 260px !important;   /* 强制宽度 */
@@ -173,9 +153,6 @@
       z-index: 500; /* 浮起 */
     }
 
-    /* ========================================= */
-    /* 6. 其他组件 (添加按钮、垃圾桶、皮肤)        */
-    /* ========================================= */
     .add-list-wrapper { min-width: 280px; background: rgba(255,255,255,0.25); color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
     .add-list-wrapper:hover { background: rgba(255,255,255,0.4); }
     .add-card-btn { color: #5e6c84; padding: 8px; cursor: pointer; border-radius: 3px; margin-top: 5px; }
@@ -297,9 +274,7 @@
     $(".bg-item").click(function(){ var u=$(this).data("img"); $('body').css('background-image','url('+u+')'); localStorage.setItem("bg_value",u); });
   });
 
-  // ===========================================
-  // 【核心函数】初始化拖拽 (含新特效与修复)
-  // ===========================================
+
   function initSortable() {
     $(".card-container").sortable({
       connectWith: ".card-container", // 允许上下区域互通
@@ -307,30 +282,25 @@
       cursor: "grabbing",
       revert: 200,
 
-      // --- 修复遮挡问题的关键配置 ---
       appendTo: "body",   // 挂载到 body，脱离容器限制
       helper: "clone",    // 克隆模式
       zIndex: 10000,      // 强制最高层级
 
-      // --- 1. 开始拖拽 ---
       start: function(event, ui) {
         ui.item.css("opacity", 0); // 隐藏原卡片
         // 强制 Helper 宽度，防止从宽容器拖到窄容器时变形
         ui.helper.css("width", "260px");
       },
 
-      // --- 2. 进入列表感应特效 ---
+
       over: function(event, ui) {
-        // 找到当前悬停的列表容器 (无论是普通列表还是未分类区)
         $(this).closest(".list-column, .uncategorized-zone").addClass("drag-active");
       },
 
-      // --- 3. 离开列表取消特效 ---
       out: function(event, ui) {
         $(this).closest(".list-column, .uncategorized-zone").removeClass("drag-active");
       },
 
-      // --- 4. 停止拖拽 ---
       stop: function(event, ui) {
         ui.item.css("opacity", 1); // 恢复显示
         // 移除所有特效，防止卡死

@@ -18,9 +18,6 @@
       background-color: #000; /* 视频加载前的兜底颜色 */
     }
 
-    /* ========================================= */
-    /* 🎥 视频背景核心样式                        */
-    /* ========================================= */
     #bg-video {
       position: fixed;
       top: 50%;
@@ -61,19 +58,15 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ========================================= */
-    /* ✨ 标题样式 (花体字 + 渐变高亮)             */
-    /* ========================================= */
     h1 {
       /* 引用 Google Fonts 字体 */
       font-family: 'Dancing Script', cursive;
-      font-size: 5rem; /* 字体加大，更显气势 */
+      font-size: 5rem;
       margin: 0;
       font-weight: 700;
-      letter-spacing: 2px; /* 字母间距稍微收紧，花体字更紧凑 */
-      text-transform: capitalize; /* 首字母大写即可，花体字不适合全大写 */
+      letter-spacing: 2px;
+      text-transform: capitalize;
 
-      /* 更明亮、有光泽感的渐变色 */
       background: linear-gradient(to right, #ffe6cc, #ffd699, #f7f7f7, #ffd699, #ffe6cc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;

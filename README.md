@@ -106,6 +106,7 @@
      - 在 MySQL 中创建数据库 `kanban_db`。
      - 执行上述 SQL 脚本建表。
      - 修改 `src/main/resources/db.properties` 中的数据库账号密码。
+     - 启动数据库`mysql -u root -p`
   3. **静态资源**：
      - 确保 `src/main/webapp/images/` 下包含背景图片 (`bg1.png`, `bg2.png` 等)。
      - 确保 `src/main/webapp/videos/` 下包含视频文件 (`test.mp4`)。
@@ -113,7 +114,7 @@
      - 使用 IntelliJ IDEA 打开项目。
      - 配置 Tomcat Server，部署 Artifact (`xxx:war exploded`)。
      - 启动服务器，访问 `http://localhost:8081/kanban/`（根据实际配置路径）。
-
+  
   ------
-
+  
   **© 2025 Capricorn Project.** Created for Final Assignment.
