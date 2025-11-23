@@ -154,19 +154,6 @@ public class KanbanController {
         }
     }
 
-    // 删除卡片
-    @RequestMapping(value = "/board/deleteCard", method = RequestMethod.POST)
-    @ResponseBody
-    public String deleteCard(@RequestParam Integer cardId) {
-        try {
-            kanbanService.deleteCard(cardId);
-            return "success";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "fail";
-        }
-    }
-
     // 重命名列表
     @PostMapping("/board/renameList")
     @ResponseBody

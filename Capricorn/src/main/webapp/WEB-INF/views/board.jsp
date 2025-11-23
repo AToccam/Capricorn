@@ -122,9 +122,6 @@
       word-wrap: break-word;
       color: #172b4d;
     }
-    .delete-btn { position: absolute; top: 5px; right: 5px; display: none; cursor: pointer; color: #999; font-weight: bold; padding: 0 5px;}
-    .delete-btn:hover { color: #c00; background: #eee; border-radius: 3px; }
-    .card:hover .delete-btn { display: block; }
 
     .ui-sortable-placeholder {
       border: 2px dashed #0079bf !important;
@@ -197,7 +194,6 @@
           <c:forEach items="${list.cards}" var="card">
             <div class="card" data-card-id="${card.cardId}">
                 ${card.cardContent}
-              <span class="delete-btn" onclick="deleteCard(event, ${card.cardId})">&times;</span>
             </div>
           </c:forEach>
         </div>
@@ -235,7 +231,6 @@
         <c:forEach items="${list.cards}" var="card">
           <div class="card" data-card-id="${card.cardId}">
               ${card.cardContent}
-            <span class="delete-btn" onclick="deleteCard(event, ${card.cardId})">&times;</span>
           </div>
         </c:forEach>
       </div>
@@ -302,21 +297,27 @@
       },
 
       stop: function(event, ui) {
-        ui.item.css("opacity", 1); // 恢复显示
-        // 移除所有特效，防止卡死
+        // 1. 移除列表的高亮特效
         $(".list-column, .uncategorized-zone").removeClass("drag-active");
 
-        if (ui.item.data("deleting")) return; // 如果是删除操作，不执行移动
+        if (ui.item.data("deleting")) {
+          ui.item.hide(); // 再次确保它是隐藏的
+          return;
+        }
 
+        // 2. 只有不是删除操作时，才恢复卡片透明度
+        ui.item.css("opacity", 1);
+
+        // 3. 获取 ID 并发送移动请求
         var cardId = ui.item.data("card-id");
         // 获取目标列表ID
-        var newListId = ui.item.closest("[data-list-id]").data("list-id");
+        var $targetList = ui.item.closest("[data-list-id]");
+        var newListId = $targetList.data("list-id");
 
         if (!newListId) {
           console.warn("未检测到目标列表，取消请求");
-          // 可选：让卡片回弹归位，视觉上更自然
           $(this).sortable("cancel");
-          return; // 直接结束，不发送请求，就不会报错了！
+          return;
         }
 
         $.post("${pageContext.request.contextPath}/moveCard", { cardId: cardId, newListId: newListId });
@@ -428,17 +429,18 @@
   function showInputBox(id) { $("#btn-wrapper-"+id).hide(); $("#form-wrapper-"+id).show(); $("#input-"+id).focus(); }
   function hideInputBox(id) { $("#form-wrapper-"+id).hide(); $("#btn-wrapper-"+id).show(); $("#input-"+id).val(""); }
 
-  function deleteCard(e, id) { e.stopPropagation(); if(confirm("删除任务？")) $.post("${pageContext.request.contextPath}/board/deleteCard", {cardId:id}, function(r){ if(r==="success") $("div[data-card-id='"+id+"']").remove(); }); }
+
 
   function submitCard(id) {
     var txt = $("#input-"+id).val(); if(!txt)return;
     $.post("${pageContext.request.contextPath}/board/addCard", {listId:id, cardContent:txt}, function(r){
       if(r.status==="success") {
-        $("#container-"+id).append('<div class="card" data-card-id="'+r.newCardId+'">'+txt+'<span class="delete-btn" onclick="deleteCard(event, '+r.newCardId+')">&times;</span></div>');
+        $("#container-"+id).append('<div class="card" data-card-id="'+r.newCardId+'">'+txt+'</div>');
         hideInputBox(id);
       }
     });
   }
+
 </script>
 </body>
 </html>
